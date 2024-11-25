@@ -4,7 +4,7 @@ from ..models.player import Player
 
 router = APIRouter()
 
-# TODO: Migrate to a rt db later. For now, use a locally stored list of lobbies
+# TODO: integrate the UDP functionality
 lobbies: list[Lobby] = []
 
 @router.post("/create", tags=["lobbies"])
