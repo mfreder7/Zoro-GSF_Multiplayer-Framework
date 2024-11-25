@@ -4,5 +4,6 @@ class Player(BaseModel):
     name: str
     id: str
     admin: bool = False
-    # TODO: implement later for returning the player's current lobby
-    # lobby: str = None
+    ready: bool = False
+    # a placeholder string that holds any additional data the player is communicating (to test encode/decode)
+    data: str = ""
