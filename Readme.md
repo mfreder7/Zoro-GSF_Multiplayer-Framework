@@ -1,5 +1,7 @@
 # Fast API + Custom UDP Implementation - Game server framework
 
+![Coverage](coverage.svg)
+
 The goal is to build a robust and efficient solution designed to minimize latency and overhead through a custom protocol in a lean server environment. This project provides a foundational game server structure optimized for self-hosting, ensuring smooth and responsive multiplayer experiences.
 
 ## Current Functionality

@@ -1,19 +1,38 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Depends
 from typing import List
-from .routers import lobbies, players
 
-app = FastAPI()
+from fastapi.concurrency import asynccontextmanager
+from .routers import lobbies, players
+from .utils.udp import UDPManager
+
+udp_manager:UDPManager = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize UDPManager
+    print("Starting UDP Manager...")
+    udp_manager = UDPManager()
+    app.state.udp_manager = udp_manager
+    
+    yield
+    
+    # Shutdown: Clean up UDPManager
+    print("Shutting down UDP Manager...")
+    udp_manager.stop_all_servers()
+    udp_manager.stop_all_clients()
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(
     lobbies.router,
     prefix="/lobbies",
-    tags=["lobbies"]
+    tags=["lobbies"],
 )
 
 app.include_router(
     players.router,
     prefix="/players",
-    tags=["players"]
+    tags=["players"],
 )
 
 @app.get("/")

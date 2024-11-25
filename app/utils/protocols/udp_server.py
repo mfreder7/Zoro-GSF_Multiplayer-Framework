@@ -7,6 +7,7 @@ class GameServer:
     def __init__(self, host: str, port: int):
         self.server_address = (host, port)
         self.clients: Dict[str, Tuple[str, int]] = {}
+        # socket.AF_INET specifies IPv4, and socket.SOCK_DGRAM specifies the use of UDP.
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(self.server_address)
         self.running = True
