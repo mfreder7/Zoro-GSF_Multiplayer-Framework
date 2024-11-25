@@ -1,4 +1,4 @@
-# name-tbd
+# Fast API + Custom UDP Implementation
 
 The goal is to build a robust and efficient solution designed to minimize latency and overhead through a custom protocol in a lean server environment. This project provides a foundational game server structure optimized for self-hosting, ensuring smooth and responsive multiplayer experiences.
 
@@ -8,9 +8,7 @@ The goal is to build a robust and efficient solution designed to minimize latenc
 - **Initial Unit Tests (partial pass)**: A scalable and high-performance API built with FastAPI, handling routes for lobbies and player management.
 - **Custom UDP**: Initial roughdraft.
 
-## Test-Driven Development Workflow
-
-This project follows a **Test-Driven Development (TDD)** approach, ensuring that all features are thoroughly tested and validated before implementation. This workflow enhances code reliability, facilitates refactoring, and accelerates development by catching issues early in the development cycle.
+## WIP
 
 ### Running Tests Locally
 
