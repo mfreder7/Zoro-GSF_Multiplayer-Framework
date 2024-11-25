@@ -1,9 +1,9 @@
-from fastapi import HTTPException
+# app/dependencies.py
+from fastapi import Request, Depends, FastAPI
+from .utils.udp import UDPManager
+from typing import Annotated
 
-# TODO: move reusable code here and inject as dependency
+def get_udp_manager(request: Request) -> UDPManager:
+    return request.app.state.udp_manager
 
-
-
-
-
-    
+UDPManagerDep = Annotated[UDPManager, Depends(get_udp_manager)]

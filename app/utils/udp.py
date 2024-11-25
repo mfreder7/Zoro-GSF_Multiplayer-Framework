@@ -1,6 +1,8 @@
-from protocols.udp_server import GameServer
-from protocols.udp_client import GameClient
+from .protocols.udp_server import GameServer
+from .protocols.udp_client import GameClient
 from typing import Dict
+
+from pydantic import BaseModel
 
 class UDPManager:
     def __init__(self):
@@ -37,21 +39,10 @@ class UDPManager:
         client.stop()
         print(f"Client {client_id} stopped and removed.")
 
-# # Example usage
-#     manager = UDPManager()
+    def stop_all_servers(self):
+        for server_id in list(self.servers.keys()):
+            self.remove_server(server_id)
 
-#     # Create a server (lobby)
-#     manager.create_server(lobby_id="lobby1", host="127.0.0.1", port=12345)
-
-#     # Create clients (players)
-#     manager.create_client(client_id="client1", server_host="127.0.0.1", server_port=12345)
-#     manager.create_client(client_id="client2", server_host="127.0.0.1", server_port=12345)
-
-#     # Simulate sending updates
-#     manager.clients["client1"].send_update({"position": [1, 2, 3]})
-#     manager.clients["client2"].send_update({"position": [4, 5, 6]})
-
-#     # Remove clients and server
-#     manager.remove_client("client1")
-#     manager.remove_client("client2")
-#     manager.remove_server("lobby1")
+    def stop_all_clients(self):
+        for client_id in list(self.clients.keys()):
+            self.remove_client(client_id)

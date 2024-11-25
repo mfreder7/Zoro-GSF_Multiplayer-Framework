@@ -1,21 +1,51 @@
-from fastapi.testclient import TestClient
-from app.main import app
+import pytest
+from app.models.lobby import Lobby
+from app.models.player import Player
 
-client = TestClient(app)
-
-def test_create_lobby():
-    response = client.post("/lobbies/create", json={"lobby_name": "test_lobby"})
+def test_create_lobby(client, mock_udp_manager):
+    """Test lobby creation"""
+    response = client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
+    
     assert response.status_code == 200
-    assert "message" in response.json()
+    assert response.json() == {"message": "Lobby 'test_lobby' created"}
+    
+    # Verify UDPManager interaction
+    mock_udp_manager.create_server.assert_called_once_with(
+        lobby_id="test_lobby",
+        host="127.0.0.1", 
+        port=12345
+    )
 
-def test_join_lobby():
-    # Assuming "test_lobby" was created in the previous test
-    response = client.post("/lobbies/join", json={"lobby_name": "test_lobby", "player_id": "player1"})
+def test_join_lobby(client, mock_udp_manager):
+    """Test joining a lobby"""
+    # First create a lobby
+    client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
+    
+    # Then try to join it
+    response = client.post("/lobbies/join", params={
+        "lobby_name": "test_lobby",
+        "player_id": "player1"
+    })
+    
     assert response.status_code == 200
-    assert "message" in response.json()
+    assert response.json() == {"message": "Player 'player1' joined lobby 'test_lobby'"}
+    
+    # Verify UDPManager interaction
+    mock_udp_manager.create_client.assert_called_once_with(
+        client_id="player1",
+        server_host="127.0.0.1",
+        server_port=12345
+    )
 
-def test_list_lobbies():
+def test_list_lobbies(client):
+    """Test listing all lobbies"""
+    # Create a test lobby first
+    client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
+    
     response = client.get("/lobbies/list")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
+    
+    lobbies = response.json()
+    assert isinstance(lobbies, list)
+    assert len(lobbies) > 0
+    assert any(lobby["name"] == "test_lobby" for lobby in lobbies)

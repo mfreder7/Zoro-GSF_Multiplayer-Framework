@@ -6,6 +6,7 @@ class GameClient:
     def __init__(self, server_host: str, server_port: int, client_id: str):
         self.server_address = (server_host, server_port)
         self.client_id = client_id
+        # socket.AF_INET specifies IPv4, and socket.SOCK_DGRAM specifies the use of UDP.
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.running = True
 
