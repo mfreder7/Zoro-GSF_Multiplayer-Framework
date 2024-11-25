@@ -5,7 +5,7 @@ The goal is to build a robust and efficient solution designed to minimize latenc
 ## Current Functionality
 
 - **FastAPI API**: A scalable and high-performance API built with FastAPI, handling routes for lobbies and player management.
-- **Initial Unit Tests (partial pass)**: A scalable and high-performance API built with FastAPI, handling routes for lobbies and player management.
+- **Initial Unit Tests (partial pass)**: Pytest
 - **Custom UDP**: Initial roughdraft.
 
 ## WIP
