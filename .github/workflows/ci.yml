@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -42,11 +43,6 @@ jobs:
         run: |
           coverage-badge -o coverage.svg -f
 
-      - name: Commit coverage badge
-        if: github.ref == 'refs/heads/master'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add coverage.svg
-          git commit -m "Update coverage badge" || exit 0
-          git push
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Add coverage badge"

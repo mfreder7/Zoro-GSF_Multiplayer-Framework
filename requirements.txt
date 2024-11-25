@@ -3,4 +3,4 @@ uvicorn
 httpx
 pytest
 pytest-cov
-coverage-badge
+genbadge[coverage]
