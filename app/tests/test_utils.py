@@ -30,20 +30,12 @@ def mock_udp_manager():
 def test_udp_manager_create_server(mock_udp_manager):
     """Test UDPManager server creation"""
     mock_udp_manager.create_server("test_lobby", "127.0.0.1", 12345)
-    mock_udp_manager.create_server.assert_called_once_with(
-        lobby_id="test_lobby",
-        host="127.0.0.1",
-        port=12345
-    )
+    mock_udp_manager.create_server.assert_called_once_with("test_lobby", "127.0.0.1", 12345)
 
 def test_udp_manager_create_client(mock_udp_manager):
     """Test UDPManager client creation"""
     mock_udp_manager.create_client("player1", "127.0.0.1", 12345)
-    mock_udp_manager.create_client.assert_called_once_with(
-        client_id="player1",
-        server_host="127.0.0.1",
-        server_port=12345
-    )
+    mock_udp_manager.create_client.assert_called_once_with("player1", "127.0.0.1", 12345)
 
 @pytest.fixture
 def game_server(monkeypatch):

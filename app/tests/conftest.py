@@ -17,10 +17,22 @@ def mock_socket(monkeypatch):
 
 @pytest.fixture
 def mock_threading(monkeypatch):
-    """Mock threading to prevent actual thread creation during tests"""
-    mock_thread = MagicMock()
-    monkeypatch.setattr(threading, "Thread", lambda *args, **kwargs: mock_thread)
-    return mock_thread
+    """Mock threading when needed in specific tests"""
+    original_thread = threading.Thread
+
+    class MockThread:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def start(self):
+            pass
+
+        def join(self):
+            pass
+
+    monkeypatch.setattr(threading, "Thread", MockThread)
+    yield
+    monkeypatch.setattr(threading, "Thread", original_thread)
 
 @pytest.fixture
 def mock_udp_manager():
