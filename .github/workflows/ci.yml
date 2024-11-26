@@ -41,9 +41,9 @@ jobs:
         run: |
           pytest --cov=app --cov-report=xml
 
-      - name: Generate coverage badge
-        run: |
-          genbadge coverage -i coverage.xml -o coverage.svg
+      # - name: Generate coverage badge
+      #   run: |
+      #     genbadge coverage -i coverage.xml -o coverage.svg
 
-      - name: Git Auto Commit
-        uses: stefanzweifel/git-auto-commit-action@v5.0.1
+      # - name: Git Auto Commit
+      #   uses: stefanzweifel/git-auto-commit-action@v5.0.1

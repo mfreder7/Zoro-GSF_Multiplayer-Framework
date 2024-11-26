@@ -4,7 +4,10 @@ from app.models.player import Player
 
 def test_create_lobby(client, mock_udp_manager):
     """Test lobby creation"""
-    response = client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
+    response = client.post(
+        "/lobbies/create",
+        params={"lobby_name": "test_lobby"}  # Using 'params' to match API expectations
+    )
     
     assert response.status_code == 200
     assert response.json() == {"message": "Lobby 'test_lobby' created"}
@@ -18,14 +21,17 @@ def test_create_lobby(client, mock_udp_manager):
 
 def test_join_lobby(client, mock_udp_manager):
     """Test joining a lobby"""
-    # First create a lobby
+    # First, create a lobby
     client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
     
-    # Then try to join it
-    response = client.post("/lobbies/join", params={
-        "lobby_name": "test_lobby",
-        "player_id": "player1"
-    })
+    # Then join the lobby
+    response = client.post(
+        "/lobbies/join",
+        params={
+            "lobby_name": "test_lobby",
+            "player_id": "player1"
+        }
+    )
     
     assert response.status_code == 200
     assert response.json() == {"message": "Player 'player1' joined lobby 'test_lobby'"}
@@ -39,7 +45,7 @@ def test_join_lobby(client, mock_udp_manager):
 
 def test_list_lobbies(client):
     """Test listing all lobbies"""
-    # Create a test lobby first
+    # Create a test lobby
     client.post("/lobbies/create", params={"lobby_name": "test_lobby"})
     
     response = client.get("/lobbies/list")
