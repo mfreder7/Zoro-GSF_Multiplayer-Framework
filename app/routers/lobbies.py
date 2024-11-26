@@ -39,7 +39,6 @@ async def join_lobby(
     player = Player(name=player_id, id=player_id)
     lobbies[lobby_name].players.append(player)
     
-    udp_manager.create_client(client_id=player_id, server_host="127.0.0.1", server_port=12345)
     return MessageResponse(message=f"Player '{player_id}' joined lobby '{lobby_name}'")
 
 @router.post("/leave", response_model=MessageResponse)
@@ -54,7 +53,6 @@ async def leave_lobby(
     lobby = lobbies[lobby_id]
     lobby.players = [p for p in lobby.players if p.id != player_id]
     
-    udp_manager.remove_client(client_id=player_id)
     return MessageResponse(message=f"Player '{player_id}' left lobby '{lobby_id}'")
 
 @router.get("/list", response_model=list[Lobby])

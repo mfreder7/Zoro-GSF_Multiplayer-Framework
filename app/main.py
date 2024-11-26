@@ -19,7 +19,6 @@ async def lifespan(app: FastAPI):
     # Shutdown: Clean up UDPManager
     print("Shutting down UDP Manager...")
     udp_manager.stop_all_servers()
-    udp_manager.stop_all_clients()
 
 app = FastAPI(lifespan=lifespan)
 

@@ -1,5 +1,5 @@
 # app/dependencies.py
-from fastapi import Request, Depends, FastAPI
+from fastapi import Request, Depends
 from .utils.udp import UDPManager
 from typing import Annotated
 
