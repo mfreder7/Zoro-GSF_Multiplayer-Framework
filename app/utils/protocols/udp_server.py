@@ -40,6 +40,12 @@ class GameServer:
             self.handle_update(packet, address)
         else:
             print(f"Unknown packet type: {packet_type}")
+        
+        # broadcast new connect or disconnect to all clients
+        if packet_type in ["connect", "disconnect"]:
+            client_id = packet.get("client_id")
+            action = "connect" if packet_type == "connect" else "disconnect"
+            self.update_when_connect_or_disconnect(client_id, action)
 
     def handle_connect(self, packet: dict, address: Tuple[str, int]):
         client_id = packet.get("client_id")
@@ -56,6 +62,13 @@ class GameServer:
         client_id = packet.get("client_id")
         data = packet.get("data")
         print(f"Received update from {client_id}: {data}")
+        self.send_to_all_clients(packet)
+
+    def update_when_connect_or_disconnect(self, client_id: str, action: str):
+        packet = {
+            "type": action,
+            "client_id": client_id
+        }
         self.send_to_all_clients(packet)
 
     def send_to_all_clients(self, packet: dict):
