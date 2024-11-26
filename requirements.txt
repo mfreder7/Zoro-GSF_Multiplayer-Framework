@@ -3,4 +3,5 @@ uvicorn
 httpx
 pytest
 pytest-cov
+pytest-mock
 genbadge[coverage]

@@ -1,30 +1,49 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.dependencies import get_udp_manager
 from app.main import app
+from app.dependencies import get_udp_manager
 from app.utils.udp import UDPManager
-from app.models.lobby import Lobby
 from unittest.mock import MagicMock
+import socket
+import threading
+
+# Remove autouse=True to prevent unexpected side effects
+@pytest.fixture
+def mock_socket(monkeypatch):
+    """Mock socket operations to prevent actual network usage during tests"""
+    mock_socket = MagicMock()
+    monkeypatch.setattr(socket, "socket", lambda *args, **kwargs: mock_socket)
+    return mock_socket
+
+@pytest.fixture
+def mock_threading(monkeypatch):
+    """Mock threading to prevent actual thread creation during tests"""
+    mock_thread = MagicMock()
+    monkeypatch.setattr(threading, "Thread", lambda *args, **kwargs: mock_thread)
+    return mock_thread
 
 @pytest.fixture
 def mock_udp_manager():
-    """Mock UDPManager with required methods"""
-    manager = MagicMock(spec=UDPManager)
-    # Setup default return values
-    manager.create_server.return_value = None
-    manager.create_client.return_value = None
+    """Create a UDPManager with mocked methods"""
+    manager = UDPManager()
+
+    # Mock the methods explicitly
+    manager.create_server = MagicMock()
+    manager.create_client = MagicMock()
+    manager.remove_server = MagicMock()
+    manager.remove_client = MagicMock()
+
     return manager
 
 @pytest.fixture
 def client(mock_udp_manager):
-    """TestClient with mocked dependencies"""
-    def get_mock_udp_manager():
-        return mock_udp_manager
-    
-    app.dependency_overrides[get_udp_manager] = get_mock_udp_manager
-    
-    client = TestClient(app)
-    yield client
-    
-    # Cleanup
+    """Create a test client with dependency overrides"""
+    # Set the dependency override
+    app.dependency_overrides[get_udp_manager] = lambda: mock_udp_manager
+
+    # Create the TestClient instance
+    with TestClient(app) as client:
+        yield client
+
+    # Clear the dependency overrides after the client is done
     app.dependency_overrides.clear()
