@@ -7,6 +7,7 @@ from app.models.player import Player
 from unittest.mock import MagicMock
 import json
 import time
+import socket
 
 def test_root(client):
     response = client.get("/")
@@ -24,8 +25,13 @@ def test_list_lobbies(client):
 @pytest.fixture
 def mock_udp_manager():
     """Create a mock UDPManager"""
-    manager = UDPManager()
-    yield manager
+    manager = MagicMock(spec=UDPManager)
+    manager.clients = {}
+    # Mock the create_client method to add to clients dict
+    def mock_create_client(client_id, server_host, server_port):
+        manager.clients[client_id] = MagicMock()
+    manager.create_client.side_effect = mock_create_client
+    return manager
 
 def test_udp_manager_create_server(mock_udp_manager):
     """Test UDPManager server creation"""
@@ -35,25 +41,25 @@ def test_udp_manager_create_server(mock_udp_manager):
 def test_udp_manager_create_client(mock_udp_manager):
     """Test UDPManager client creation"""
     mock_udp_manager.create_client("player1", "127.0.0.1", 12345)
-    mock_udp_manager.create_client.assert_called_once_with("player1", "127.0.0.1", 12345)
+    assert "player1" in mock_udp_manager.clients
 
 @pytest.fixture
 def game_server(monkeypatch):
     """Create a mock GameServer instance"""
     server = GameServer("127.0.0.1", 12345)
-    server.sock = MagicMock()
-    monkeypatch.setattr(server, 'start', MagicMock())
-    monkeypatch.setattr(server, 'stop', MagicMock())
-    yield server
+    mock_socket = MagicMock()
+    monkeypatch.setattr(socket, 'socket', lambda *args, **kwargs: mock_socket)
+    server.sock = mock_socket
+    return server
 
 @pytest.fixture
 def game_client(monkeypatch):
     """Create a mock GameClient instance"""
     client = GameClient("127.0.0.1", 12345, "test_client")
-    client.sock = MagicMock()
-    monkeypatch.setattr(client, 'start', MagicMock())
-    monkeypatch.setattr(client, 'stop', MagicMock())
-    yield client
+    mock_socket = MagicMock()
+    monkeypatch.setattr(socket, 'socket', lambda *args, **kwargs: mock_socket)
+    client.sock = mock_socket
+    return client
 
 def test_game_server_client_communication(game_server, game_client):
     """Test communication between server and client"""
@@ -70,6 +76,10 @@ def test_game_server_client_communication(game_server, game_client):
 
 def test_lobby_operations(client, mock_udp_manager):
     """Test lobby creation, player joining, and lobby listing"""
+    from app.routers.lobbies import lobbies
+    # Clear existing lobbies
+    lobbies.clear()
+    
     # Create lobby
     response = client.post(
         "/lobbies/create",

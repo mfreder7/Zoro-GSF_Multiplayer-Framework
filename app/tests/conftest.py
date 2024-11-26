@@ -36,15 +36,8 @@ def mock_threading(monkeypatch):
 
 @pytest.fixture
 def mock_udp_manager():
-    """Create a UDPManager with mocked methods"""
-    manager = UDPManager()
-
-    # Mock the methods explicitly
-    manager.create_server = MagicMock()
-    manager.create_client = MagicMock()
-    manager.remove_server = MagicMock()
-    manager.remove_client = MagicMock()
-
+    """Create a mock UDPManager with properly mocked methods"""
+    manager = MagicMock(spec=UDPManager)
     return manager
 
 @pytest.fixture
