@@ -1,16 +1,19 @@
+# unreliable.py
 import json
 import queue
+from typing import Tuple
 
-class UnreliableHandler:
-    def __init__(self, queue: queue.Queue):
-        self.queue = queue
+from .base_handler import BaseHandler
 
-    def send(self, sock, data, address):
-        packet = {
-            "type": data.get("type"),
-            "client_id": data.get("client_id"),
-            "data": data.get("data"),
-            "reliable": False
-        }
+class UnreliableHandler(BaseHandler):
+    def send(self, packet: dict, address: Tuple[str, int]):
         encoded_packet = json.dumps(packet).encode('utf-8')
-        sock.sendto(encoded_packet, address)
+        self.sock.sendto(encoded_packet, address)
+
+    def process_queue(self):
+        while self.running:
+            try:
+                packet, address = self.queue.get(timeout=0.01)
+                self.send(packet, address)
+            except queue.Empty:
+                continue

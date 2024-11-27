@@ -1,62 +1,52 @@
+# reliable.py
+import json
 import queue
 import threading
 import time
-import json
-from typing import Dict, Any
+from typing import Dict, Tuple
 
-class ReliableHandler:
-    def __init__(self, queue: queue.Queue):
+from .base_handler import BaseHandler
+
+class ReliableHandler(BaseHandler):
+    def __init__(self, sock):
+        super().__init__(sock)
         self.sequence_number = 0
-        self.ack_timeout = 1.0  # seconds
-        self.max_retries = 3
-        self.pending_acks: Dict[int, Any] = {}
-        self.lock = threading.Lock()
-        self.queue = queue
+        self.pending_acks: Dict[int, Tuple[dict, Tuple[str, int], float]] = {}
+        self.ack_lock = threading.Lock()
+        self.retry_thread = threading.Thread(target=self.retry_unacknowledged_packets, daemon=True)
+        self.retry_thread.start()
 
-        # Start a thread to monitor pending acknowledgments
-        threading.Thread(target=self.retry_unacknowledged_packets, daemon=True).start()
-
-    def send(self, sock, data, address):
-        with self.lock:
+    def send(self, packet: dict, address: Tuple[str, int]):
+        with self.ack_lock:
             self.sequence_number += 1
-            packet = {
-                "seq": self.sequence_number,
-                "data": data,
-                "reliable": True
-            }
+            packet["seq"] = self.sequence_number
             encoded_packet = json.dumps(packet).encode('utf-8')
-            sock.sendto(encoded_packet, address)
-            self.pending_acks[self.sequence_number] = {
-                "packet": packet,
-                "address": address,
-                "retries": 0,
-                "timestamp": time.time()
-            }
+            self.sock.sendto(encoded_packet, address)
+            self.pending_acks[self.sequence_number] = (packet, address, time.time())
 
-    def process_ack(self, seq_num):
-        with self.lock:
-            seq_num = int(seq_num)
-            if seq_num in self.pending_acks:
-                del self.pending_acks[seq_num]
+    def process_queue(self):
+        while self.running:
+            try:
+                packet, address = self.queue.get(timeout=0.1)
+                self.send(packet, address)
+            except queue.Empty:
+                continue
+
+    def process_ack(self, seq_num: int):
+        with self.ack_lock:
+            self.pending_acks.pop(seq_num, None)
 
     def retry_unacknowledged_packets(self):
-        while True:
-            with self.lock:
+        while self.running:
+            with self.ack_lock:
                 current_time = time.time()
-                to_remove = []
-                for seq_num, info in self.pending_acks.items():
-                    if current_time - info["timestamp"] > self.ack_timeout:
-                        if info["retries"] < self.max_retries:
-                            # Resend the packet
-                            encoded_packet = json.dumps(info["packet"]).encode('utf-8')
-                            sock = info.get("sock")
-                            address = info["address"]
-                            sock.sendto(encoded_packet, address)
-                            info["retries"] += 1
-                            info["timestamp"] = current_time
-                        else:
-                            # Max retries reached, remove from pending_acks
-                            to_remove.append(seq_num)
-                for seq_num in to_remove:
-                    del self.pending_acks[seq_num]
+                for seq_num, (packet, address, timestamp) in list(self.pending_acks.items()):
+                    if current_time - timestamp > 1.0:  # ack_timeout
+                        encoded_packet = json.dumps(packet).encode('utf-8')
+                        self.sock.sendto(encoded_packet, address)
+                        self.pending_acks[seq_num] = (packet, address, current_time)
             time.sleep(0.1)
+
+    def stop(self):
+        super().stop()
+        self.retry_thread.join()
