@@ -1,6 +1,6 @@
 import pytest
-from app.utils.protocols.udp_server import GameServer
-from app.utils.udp import UDPManager
+from app.utils.protocols.udp_client import GameServer
+from app.utils.udp_manager import UDPManager
 from app.models.lobby import Lobby
 from app.models.player import Player
 from unittest.mock import MagicMock

@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.dependencies import get_udp_manager
-from app.utils.udp import UDPManager
+from app.utils.udp_manager import UDPManager
 from unittest.mock import MagicMock
 
 @pytest.fixture

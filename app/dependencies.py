@@ -1,6 +1,6 @@
 # app/dependencies.py
 from fastapi import Request, Depends
-from .utils.udp import UDPManager
+from .utils.udp_manager import UDPManager
 from typing import Annotated
 
 def get_udp_manager(request: Request) -> UDPManager:

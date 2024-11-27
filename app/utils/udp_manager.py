@@ -1,4 +1,4 @@
-from .protocols.udp_server import GameServer
+from .protocols.udp_client import GameServer
 from typing import Dict
 
 class UDPManager:

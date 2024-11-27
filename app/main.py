@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi.concurrency import asynccontextmanager
 from .routers import lobbies, players
-from .utils.udp import UDPManager
+from .utils.udp_manager import UDPManager
 
 udp_manager:UDPManager = None
 

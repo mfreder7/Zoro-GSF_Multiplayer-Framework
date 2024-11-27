@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Dict, List
 from ..models.lobby import Lobby
 from ..models.player import Player
-from ..utils.udp import UDPManager
+from ..utils.udp_manager import UDPManager
 from ..dependencies import get_udp_manager, UDPManagerDep
 from pydantic import BaseModel
 
