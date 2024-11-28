@@ -72,6 +72,18 @@ async def join_lobby(
     
     # return MessageResponse(message=f"Player '{player_id}' left lobby '{lobby_id}'")
 
-@router.get("/list", response_model=LobbyListResponse)
-async def list_lobbies(udp_manager: UDPManagerDep) -> LobbyListResponse:
-    return udp_manager.servers.values()
+# lobbies.py
+@router.get("/list", response_model=List[Lobby])
+async def list_lobbies(udp_manager: UDPManagerDep) -> List[Lobby]:
+    lobbies = []
+    for lobby_name, server in udp_manager.servers.items():
+        lobby = Lobby(
+            name=lobby_name,
+            id=lobby_name,  # Assuming lobby ID is the same as the name
+            ip=server.host,  # Accessing the host attribute here
+            port_reliable=server.reliable_port,
+            port_unreliable=server.unreliable_port,
+            players=[Player(name=pid, id=pid) for pid in server.clients.keys()]
+        )
+        lobbies.append(lobby)
+    return lobbies

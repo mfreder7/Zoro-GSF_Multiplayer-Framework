@@ -1,3 +1,4 @@
+# app/models/lobby.py
 from typing import List
 from pydantic import BaseModel
 from .player import Player

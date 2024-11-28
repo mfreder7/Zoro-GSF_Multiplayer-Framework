@@ -9,7 +9,7 @@ def listen_for_packets(sock):
     sock.settimeout(1.0)  # Set a timeout to allow periodic checks
     while listening:
         try:
-            data, _ = sock.recvfrom(4096)
+            data, _ = sock.recvfrom(4097)
             packet = json.loads(data.decode('utf-8'))
             handle_packet(packet)
         except socket.timeout:
