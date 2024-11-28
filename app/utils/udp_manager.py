@@ -47,7 +47,7 @@ class UDPManager:
             port = s.getsockname()[1]
             # Ensure the port is not already used in the manager
             while port in self.used_ports:
-                s.bind(('', 0))
+                s.bind((self.interface, 0))
                 port = s.getsockname()[1]
             return port
 
