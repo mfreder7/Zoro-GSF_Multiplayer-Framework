@@ -50,3 +50,8 @@ class ReliableHandler(BaseHandler):
     def stop(self):
         super().stop()
         self.retry_thread.join()
+
+    def remove_client(self, client_id: str):
+        with self.ack_lock:
+            # Remove pending acks for the client
+            self.pending_acks = {seq: data for seq, data in self.pending_acks.items() if data[0].get("client_id") != client_id}

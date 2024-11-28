@@ -66,6 +66,10 @@ class GameServer:
         print(f"Client {client_id} disconnected")
         # Notify other clients
         self.broadcast(packet, reliable=True)
+        # Remove client from reliable handler
+        self.reliable_handler.remove_client(client_id)
+        self.unreliable_handler.remove_client(client_id)
+
 
     def handle_update(self, packet: dict, address: Tuple[str, int]):
         print(f"Received update from {packet.get('client_id')}")

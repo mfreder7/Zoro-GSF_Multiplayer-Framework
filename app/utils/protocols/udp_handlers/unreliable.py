@@ -17,3 +17,4 @@ class UnreliableHandler(BaseHandler):
                 self.send(packet, address)
             except queue.Empty:
                 continue
+
