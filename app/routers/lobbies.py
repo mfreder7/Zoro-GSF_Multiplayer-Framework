@@ -23,23 +23,10 @@ class LobbyListResponse(BaseModel):
     
 
 # Dependency for varifying lobby name isn't already take (TODO: expand to check for game account ID in the future)
-@router.post("/create", response_model=MessageResponse)
-async def create_lobby(
-    lobby_name: str,
-    udp_manager: UDPManagerDep,
-    player_id: str | None = None
-) -> MessageResponse:
-    # TODO: generate these values dynamically as needed
-    ip = "127.0.0.1"
-    port_reliable = 4201
-    port_unreliable = 4200
-
-    if lobby_name in udp_manager.servers:
-        raise HTTPException(status_code=400, detail="Lobby already exists")
-    
-    udp_manager.create_server(lobby_name=lobby_name, host=ip, port_reliable=4201, port_unreliable=4200)
-
-    return await join_lobby(lobby_name=lobby_name, player_id=player_id, udp_manager=udp_manager)
+@router.post("/create", status_code=201)
+async def create_lobby(lobby_name, player_id, udp_manager: UDPManagerDep):
+    udp_manager.create_server(lobby_name, player_id)
+    return {"message": f"Lobby '{lobby_name}' created successfully."}
 
 @router.post("/join", response_model=MessageResponse)
 async def join_lobby(
@@ -54,9 +41,12 @@ async def join_lobby(
 
     if udp_manager.servers[lobby_name]:
         server_ports = udp_manager.join_server(lobby_id=lobby_name, player_id=player_id)
+        # Update activity when player joins
+        udp_manager.update_activity(lobby_name)
         return MessageResponse(message=f"p{server_ports[0]}|{server_ports[1]}l")
     
-    # TODO: measure what methods perform better for disconnecting.
+
+# TODO: measure what methods perform better for disconnecting. Right now we have safe socket disconnecting
 
 # @router.post("/leave", response_model=MessageResponse)
 # async def leave_lobby(
@@ -87,4 +77,3 @@ async def list_lobbies(udp_manager: UDPManagerDep) -> List[Lobby]:
         )
         lobbies.append(lobby)
     return lobbies
-

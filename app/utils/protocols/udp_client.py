@@ -10,24 +10,23 @@ from .udp_handlers.unreliable import UnreliableHandler
 
 class GameServer:
     def __init__(self, host: str, reliable_port: int, unreliable_port: int):
-        self.host = host  # Add this line to store the host IP address
+        self.host = host
         self.reliable_port = reliable_port
         self.unreliable_port = unreliable_port
         self.running = True
-        self.clients: Dict[str, Tuple[str, int]] = {}  # Initialize clients dictionary
-
+        self.clients: Dict[str, Tuple[str, int]] = {}
 
         # Initialize sockets
         self.reliable_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.unreliable_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.reliable_sock.bind((host, reliable_port))
+
+        self.unreliable_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.unreliable_sock.bind((host, unreliable_port))
 
-        # Initialize handlers
+        # Initialize handlers and start threads
         self.reliable_handler = ReliableHandler(self.reliable_sock)
         self.unreliable_handler = UnreliableHandler(self.unreliable_sock)
 
-        # Start packet receivers
         threading.Thread(target=self.receive_packets, args=(self.reliable_sock, True), daemon=True).start()
         threading.Thread(target=self.receive_packets, args=(self.unreliable_sock, False), daemon=True).start()
 
@@ -68,9 +67,9 @@ class GameServer:
         print(f"Client {client_id} disconnected")
         # Notify other clients
         self.broadcast(packet, reliable=True)
-        # Remove client from reliable handler
+        # Remove client from handlers
         self.reliable_handler.remove_client(client_id)
-        self.unreliable_handler.remove_client(client_id)
+        # self.unreliable_handler.remove_client(client_id)
 
 
     def handle_update(self, packet: dict, address: Tuple[str, int]):
