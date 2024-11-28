@@ -1,7 +1,6 @@
 import pytest
-from app.utils.protocols.udp_server import GameServer
-from app.utils.protocols.udp_client import GameClient
-from app.utils.udp import UDPManager
+from app.utils.protocols.udp_client import GameServer
+from app.utils.udp_manager import UDPManager
 from app.models.lobby import Lobby
 from app.models.player import Player
 from unittest.mock import MagicMock
@@ -26,22 +25,13 @@ def test_list_lobbies(client):
 def mock_udp_manager():
     """Create a mock UDPManager"""
     manager = MagicMock(spec=UDPManager)
-    manager.clients = {}
     # Mock the create_client method to add to clients dict
-    def mock_create_client(client_id, server_host, server_port):
-        manager.clients[client_id] = MagicMock()
-    manager.create_client.side_effect = mock_create_client
     return manager
 
 def test_udp_manager_create_server(mock_udp_manager):
     """Test UDPManager server creation"""
     mock_udp_manager.create_server("test_lobby", "127.0.0.1", 12345)
     mock_udp_manager.create_server.assert_called_once_with("test_lobby", "127.0.0.1", 12345)
-
-def test_udp_manager_create_client(mock_udp_manager):
-    """Test UDPManager client creation"""
-    mock_udp_manager.create_client("player1", "127.0.0.1", 12345)
-    assert "player1" in mock_udp_manager.clients
 
 @pytest.fixture
 def game_server(monkeypatch):
@@ -52,27 +42,6 @@ def game_server(monkeypatch):
     server.sock = mock_socket
     return server
 
-@pytest.fixture
-def game_client(monkeypatch):
-    """Create a mock GameClient instance"""
-    client = GameClient("127.0.0.1", 12345, "test_client")
-    mock_socket = MagicMock()
-    monkeypatch.setattr(socket, 'socket', lambda *args, **kwargs: mock_socket)
-    client.sock = mock_socket
-    return client
-
-def test_game_server_client_communication(game_server, game_client):
-    """Test communication between server and client"""
-    # Simulating communication without actual network operations
-    game_server.clients["test_client"] = ("127.0.0.1", 12345)
-    
-    test_data = {"test": "message"}
-    game_client.send_update = MagicMock()
-    game_client.send_update(test_data)
-    game_client.send_update.assert_called_once_with(test_data)
-    
-    assert "test_client" in game_server.clients
-    assert len(game_server.clients) == 1
 
 def test_lobby_operations(client, mock_udp_manager):
     """Test lobby creation, player joining, and lobby listing"""
@@ -124,3 +93,4 @@ def test_lobby_operations(client, mock_udp_manager):
     response = client.get("/lobbies/list")
     lobbies = response.json()
     assert len(lobbies[0]["players"]) == 0
+ 

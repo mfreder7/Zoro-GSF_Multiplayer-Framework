@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi.concurrency import asynccontextmanager
 from .routers import lobbies, players
-from .utils.udp import UDPManager
+from .utils.udp_manager import UDPManager
 
 udp_manager:UDPManager = None
 
@@ -19,7 +19,6 @@ async def lifespan(app: FastAPI):
     # Shutdown: Clean up UDPManager
     print("Shutting down UDP Manager...")
     udp_manager.stop_all_servers()
-    udp_manager.stop_all_clients()
 
 app = FastAPI(lifespan=lifespan)
 

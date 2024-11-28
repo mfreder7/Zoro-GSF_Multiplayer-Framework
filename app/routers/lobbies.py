@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Dict, List
+
+from app.utils.protocols.udp_client import GameServer
 from ..models.lobby import Lobby
 from ..models.player import Player
-from ..utils.udp import UDPManager
+from ..utils.udp_manager import UDPManager
 from ..dependencies import get_udp_manager, UDPManagerDep
 from pydantic import BaseModel
 
@@ -12,20 +14,29 @@ router = APIRouter()
 class MessageResponse(BaseModel):
     message: str
 
-# In-memory storage for lobbies
-lobbies: Dict[str, Lobby] = {}
+class JoinResponse(BaseModel):
+    lobby: Lobby
+    player: Player
+    
 
+# Dependency for varifying lobby name isn't already take (TODO: expand to check for game account ID in the future)
 @router.post("/create", response_model=MessageResponse)
 async def create_lobby(
     lobby_name: str,
-    udp_manager: UDPManagerDep
+    udp_manager: UDPManagerDep,
+    player_id: str | None = None
 ) -> MessageResponse:
-    if lobby_name in lobbies:
+    # TODO: generate these values dynamically as needed
+    ip = "127.0.0.1"
+    port_reliable = 4201
+    port_unreliable = 4200
+
+    if lobby_name in udp_manager.servers:
         raise HTTPException(status_code=400, detail="Lobby already exists")
     
-    udp_manager.create_server(lobby_id=lobby_name, host="127.0.0.1", port=12345)
-    lobbies[lobby_name] = Lobby(name=lobby_name, id=lobby_name, players=[])
-    return MessageResponse(message=f"Lobby '{lobby_name}' created")
+    udp_manager.create_server(lobby_name=lobby_name, host=ip, port_reliable=4201, port_unreliable=4200)
+
+    return await join_lobby(lobby_name=lobby_name, player_id=player_id, udp_manager=udp_manager)
 
 @router.post("/join", response_model=MessageResponse)
 async def join_lobby(
@@ -33,30 +44,31 @@ async def join_lobby(
     player_id: str,
     udp_manager: UDPManagerDep
 ) -> MessageResponse:
-    if lobby_name not in lobbies:
+    if udp_manager.servers.get(lobby_name, {}) == {}:
         raise HTTPException(status_code=404, detail="Lobby not found")
     
     player = Player(name=player_id, id=player_id)
-    lobbies[lobby_name].players.append(player)
-    
-    udp_manager.create_client(client_id=player_id, server_host="127.0.0.1", server_port=12345)
-    return MessageResponse(message=f"Player '{player_id}' joined lobby '{lobby_name}'")
 
-@router.post("/leave", response_model=MessageResponse)
-async def leave_lobby(
-    lobby_id: str,
-    player_id: str,
-    udp_manager: UDPManagerDep
-) -> MessageResponse:
-    if lobby_id not in lobbies:
-        raise HTTPException(status_code=404, detail="Lobby not found")
+    if udp_manager.servers[lobby_name]:
+        server_ports = udp_manager.join_server(lobby_id=lobby_name, player_id=player_id)
+        return MessageResponse(message=f"p{server_ports[0]}|{server_ports[1]}l")
     
-    lobby = lobbies[lobby_id]
-    lobby.players = [p for p in lobby.players if p.id != player_id]
-    
-    udp_manager.remove_client(client_id=player_id)
-    return MessageResponse(message=f"Player '{player_id}' left lobby '{lobby_id}'")
+    # TODO: measure what methods perform better for disconnecting.
 
-@router.get("/list", response_model=list[Lobby])
-async def list_lobbies() -> list[Lobby]:
-    return list(lobbies.values())
+# @router.post("/leave", response_model=MessageResponse)
+# async def leave_lobby(
+#     lobby_id: str,
+#     player_id: str,
+#     udp_manager: UDPManagerDep
+# ) -> MessageResponse:
+#     if lobby_id not in lobbies:
+#         raise HTTPException(status_code=404, detail="Lobby not found")
+    
+#     lobby = lobbies[lobby_id]
+#     lobby.players = [p for p in lobby.players if p.id != player_id]
+    
+    # return MessageResponse(message=f"Player '{player_id}' left lobby '{lobby_id}'")
+
+@router.get("/list", response_model=List[GameServer])
+async def list_lobbies(udp_manager: UDPManagerDep) -> List[GameServer]:
+    return udp_manager.servers.values()

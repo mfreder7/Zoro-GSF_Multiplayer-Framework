@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.dependencies import get_udp_manager
-from app.utils.udp import UDPManager
+from app.utils.udp_manager import UDPManager
 from unittest.mock import MagicMock
 import socket
 import threading
@@ -36,19 +36,16 @@ def mock_threading(monkeypatch):
 
 @pytest.fixture
 def mock_udp_manager():
-    """Create a mock UDPManager with properly mocked methods"""
+    """Create a mock UDPManager with only the existing methods."""
     manager = MagicMock(spec=UDPManager)
     return manager
 
 @pytest.fixture
 def client(mock_udp_manager):
-    """Create a test client with dependency overrides"""
-    # Set the dependency override
+    """Create a test client with dependency overrides."""
     app.dependency_overrides[get_udp_manager] = lambda: mock_udp_manager
 
-    # Create the TestClient instance
     with TestClient(app) as client:
         yield client
 
-    # Clear the dependency overrides after the client is done
     app.dependency_overrides.clear()
