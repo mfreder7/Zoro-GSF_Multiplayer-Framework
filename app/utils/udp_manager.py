@@ -9,7 +9,8 @@ class UDPManager:
         self.servers: Dict[str, GameServer] = {}
         self.used_ports: Set[int] = set()
         self.lobby_admins: Dict[str, str] = {}  # Maps lobby_name to admin_id
-        self.host = '0.0.0.0'  # Bind to all interfaces
+        self.host = '0.0.0.0'  # Bind to all interfaces (to be replaced)
+        self.interface = '127.0.0.1'  # Bind to a specific interface (localhost for example)
         self.last_activity: Dict[str, float] = {}  # Track last activity time per lobby
         self.cleanup_thread = threading.Thread(target=self._cleanup_inactive_lobbies, daemon=True)
         self.running = True
@@ -42,7 +43,7 @@ class UDPManager:
     def find_free_port(self) -> int:
         """Find an available non-reserved port."""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.bind(('', 0))  # Let the OS assign an available port
+            s.bind((self.interface, 0))  # Bind to a specific interface and let the OS assign an available port
             port = s.getsockname()[1]
             # Ensure the port is not already used in the manager
             while port in self.used_ports:
