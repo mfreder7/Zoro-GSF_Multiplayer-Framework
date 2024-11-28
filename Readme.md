@@ -7,10 +7,17 @@ The goal is to build a robust and efficient solution designed to minimize latenc
 ## Current Functionality
 
 - **FastAPI API**: A scalable and high-performance API built with FastAPI, handling routes for lobbies and player management.
-- **Initial Unit Tests (partial pass)**: Pytest
 - **Custom UDP**: Initial roughdraft.
 
 ## WIP
+
+### Running API Locally
+
+To execute the API locally, ensure you have the necessary dependencies installed and run:
+
+```sh
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
 ### Running Tests Locally
 
