@@ -17,6 +17,9 @@ class MessageResponse(BaseModel):
 class JoinResponse(BaseModel):
     lobby: Lobby
     player: Player
+
+class LobbyListResponse(BaseModel):
+    lobbies: List[Lobby]
     
 
 # Dependency for varifying lobby name isn't already take (TODO: expand to check for game account ID in the future)
@@ -69,6 +72,6 @@ async def join_lobby(
     
     # return MessageResponse(message=f"Player '{player_id}' left lobby '{lobby_id}'")
 
-@router.get("/list", response_model=List[GameServer])
-async def list_lobbies(udp_manager: UDPManagerDep) -> List[GameServer]:
+@router.get("/list", response_model=LobbyListResponse)
+async def list_lobbies(udp_manager: UDPManagerDep) -> LobbyListResponse:
     return udp_manager.servers.values()
