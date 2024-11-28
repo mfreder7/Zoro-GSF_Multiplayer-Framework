@@ -87,3 +87,4 @@ async def list_lobbies(udp_manager: UDPManagerDep) -> List[Lobby]:
         )
         lobbies.append(lobby)
     return lobbies
+

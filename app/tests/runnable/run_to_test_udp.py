@@ -10,6 +10,7 @@ def listen_for_packets(sock):
     while listening:
         try:
             data, _ = sock.recvfrom(4097)
+
             packet = json.loads(data.decode('utf-8'))
             handle_packet(packet)
         except socket.timeout:
