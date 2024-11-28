@@ -7,13 +7,15 @@ from typing import Dict, Tuple
 from .udp_handlers.reliable import ReliableHandler
 from .udp_handlers.unreliable import UnreliableHandler
 
+
 class GameServer:
     def __init__(self, host: str, reliable_port: int, unreliable_port: int):
-        self.clients: Dict[str, Tuple[str, int]] = {}
-        self.running = True
-
+        self.host = host  # Add this line to store the host IP address
         self.reliable_port = reliable_port
         self.unreliable_port = unreliable_port
+        self.running = True
+        self.clients: Dict[str, Tuple[str, int]] = {}  # Initialize clients dictionary
+
 
         # Initialize sockets
         self.reliable_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
